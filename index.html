@@ -1,0 +1,404 @@
+<!doctype html>
+
+<html>
+
+<head>
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.min.js"></script>
+<script src = "https://cdnjs.cloudflare.com/ajax/libs/bootstrap-rtl/3.2.0-rc2/css/bootstrap-rtl.min.css"></script>
+</head>
+
+
+<style>
+body{
+	background-color:black;
+	margin:0;
+	padding:0;
+  direction:ltr;
+}
+
+h1{
+	font-size:50px;
+	font-style:sans-serif;
+	text-align:center;
+	color:white;
+	font-weight:normal;
+}
+
+.box-1{
+	width:600px;
+	height:60px;
+	background-color:black;
+	margin:40px auto auto auto;
+}
+
+.buttons{
+	width:196px;
+	height:60px;
+	background-color:black;
+	color:white;
+	margin:0 50px 0 50px;
+	border:2px solid white;
+	border-radius:5px;
+	font-size:40px;
+	font-style:sans-serif;
+	text-align:center;
+}
+
+.hov:hover{
+	opacity:0.6;
+}
+
+.box{
+  width:454px;
+  height:304px;
+  margin:50px auto auto auto;
+  border:2px solid white;
+  border-radius:5px;
+}
+
+.small-box  
+{
+	width:210px;
+	height:135px;
+	border:none;
+	border-radius:5px;
+	float:left;
+}
+
+.one{
+	background-color:Crimson;
+	position:relative;
+	left:10px;
+	top:10px;
+}
+
+.two{
+	background-color:Gold;
+	position:relative;
+	margin-left:10px;
+	left:10px;
+	right:10px;
+	top:10px;
+}
+
+.three{
+	background-color:SeaGreen;
+	position:relative;
+	margin:20px 10px 10px 10px;
+}
+
+.four{
+	background-color:MidnightBlue;
+	position:relative;
+	margin:20px 10px 10px 0px;
+}
+
+
+.TWO{
+	width:100px;
+	height:54px;
+	background-color:black;
+	margin:30px auto auto auto;
+    color:white;
+	border:2px solid white;
+	border-radius:5px;
+	font-size:35px;
+	font-style:sans-serif;
+	text-align:center;
+	
+}
+
+p{
+	color:white;
+	font-size:45px;
+	font-style:sans-serif;
+	text-align:center;
+}
+
+.toggle{
+	background-color:white;
+}
+
+.text{
+	color:white;
+	font-size:45px;
+	font-style:sans-serif;
+	text-align:center;
+
+}
+
+</style>
+
+<body>
+<div class = "container">
+<h1>Simon Game</h1>
+<div class = "box-1">
+<button class = "buttons hov" id = "start">Start</button>
+<button class = "buttons hov" id = "strict">Strict</button>
+</div>
+
+<div class = "box">
+<button class = "small-box one hov cell" value = "1" id = "1"></button>
+<button class = "small-box two hov cell" value = "2" id = "2"></button>
+<button class = "small-box three hov cell"  value = "3" id = "3"></button>
+<button class = "small-box four hov cell" value = "4" id = "4"></button>
+</div>
+</div>
+
+<div class = "TWO" id = "counter">
+--
+</div>
+
+<p></p>
+
+<audio>
+<source src = "https://s3.amazonaws.com/freecodecamp/simonSound2.mp3">
+</audio>
+</body>
+
+<script type="text/javascript">
+	var strict = false;
+
+var audioFiles = ["https://s3.amazonaws.com/freecodecamp/simonSound2.mp3", "https://s3.amazonaws.com/freecodecamp/simonSound1.mp3", "https://s3.amazonaws.com/freecodecamp/simonSound3.mp3", "https://s3.amazonaws.com/freecodecamp/simonSound4.mp3"];
+
+//A variable to chcek if the game is running at any point
+var gameStatus = false;
+
+//A flag variable
+var count = 0 ;
+
+//Recording user input
+var array = [];
+
+$(document).ready(function(){
+
+
+//Restart function
+function restart()
+{
+  document.location.href = "";
+}
+
+$("#strict").click(function(){
+    strict = true;
+});
+
+//Start the game
+$("#start").click(function(){
+	if(gameStatus === false)
+  {
+	gameStatus = true;
+	var player = new Computer();
+	var gam = new Game(player);
+	player.plays(gam);
+	gam.start();
+  }
+  else if(gameStatus === true)
+  {
+  	restart();
+  }
+
+
+
+$(".cell").click(function(){
+
+    //Adding visual effects
+    var selector = this;
+	$(selector).addClass("toggle");
+  	setTimeout(function() { $(selector).removeClass("toggle");}, 300);
+
+  	var data = $(this).attr("value");
+
+  	//Add audio effects
+  	$("audio").attr("src", audioFiles[parseInt(data) - 1]);
+  	$("audio")[0].play();
+
+
+	if(data == gam.currentState.board[count])
+	{
+		count++;
+	    array.push(parseInt(data, 10));
+
+	    if(count === gam.currentState.humanMovesCount)
+	    {
+	    	gam.currentState.advanceTurn();
+	        setTimeout(function(){gam.advanceTo(gam.currentState);},6000);
+	    	count = 0;
+	    }
+    }
+    else
+    {    
+    	if (strict === false)
+    	{
+    	$("p").text("Wrong Sequence!");
+    	setTimeout(function(){
+    		ui.computerAction(gam.currentState.board);
+    		$("p").text(" ");
+    	}, 1000);
+        }
+        else if(strict === true)
+        {
+        	restart();
+        } 
+    }
+});
+
+});
+});
+
+
+
+var ui = {};
+
+
+//Displaying computer action
+
+ui.computerAction = function(_board)
+{
+	var i = 0 ;
+   _board.map(function(element){
+   
+   	setTimeout(function(){
+   	var selector = "#" + element;
+   	$(selector).addClass("toggle");
+
+   	//Playing the audio file
+   	$("audio").attr("src", audioFiles[element - 1]);
+   	$("audio")[0].play();
+    
+   	setTimeout(function(){$(selector).removeClass("toggle")}, 500);
+   }, i * 1000);
+
+   i++;
+   
+   });
+};  
+
+var State = function()
+{
+   //Old state needed to create a new state	
+   var old;
+
+   if(arguments.length === 0)
+   	old = undefined;
+   else
+   	old = arguments[0];
+
+
+   //computer or human
+   this.turn = "";
+
+   //To store result- running or end
+   this.result = "";
+
+
+   //A variable to count the number of moves
+   this.humanMovesCount = 0 ;
+
+  //To store a particular state(sequence at any point)
+  this.board = [];
+
+  // A constructor to copy the old state
+  if(old !== undefined)
+  {
+    var length = old.board.length;
+    this.board = new Array(length);
+    for(var i = 0 ; i < length; i++)
+    	this.board[i] = old.board[i];
+    this.turn = old.turn;
+    this.result = old.result;
+    this.humanMovesCount = old.humanMovesCount;
+  }
+
+
+
+  //A function to switch turns
+  this.advanceTurn = function(){
+  	this.turn = this.turn === "computer" ? "human" : "computer";
+  };
+
+  //A function to check if the game has ended
+  this.isTerminal = function()
+  {
+  	if (this.humanMovesCount === 20)
+  		return true;
+  	else 
+  		return false;
+  };
+
+};
+
+//An array to choose from
+var available = [1, 2, 3, 4];
+
+
+//A function to keep track of the computer moves
+var Computer = function()
+{
+
+	var game = {};
+  
+
+    this.computerTurn = function()
+	{
+      var randomCell = available[Math.floor(Math.random() * available.length)];
+      game.currentState.board.push(randomCell);
+      $("#counter").text(game.currentState.humanMovesCount + 1);
+      ui.computerAction(game.currentState.board);
+      game.currentState.advanceTurn();
+      game.advanceTo(game.currentState);
+	};
+ 
+   this.plays = function(_game)
+   {
+   	game = _game;
+   };
+
+}; 
+
+var Game = function(autoplayer)
+{
+	//Creates a new state in the beginning of the game
+	this.ai = autoplayer;
+	this.currentState = new State();
+	this.currentState.turn = "computer";
+	this.status = "beginning";
+  
+    //A function to advance to next level of the game
+    this.advanceTo = function(_state)
+    {
+    	this.currentState = _state;
+    	
+    	if(_state.isTerminal())
+    	{
+           $("p").text("You won!");
+           gameStatus = false;
+    	}
+    	else if(this.currentState.turn === "human")
+    	{ 
+    		this.currentState.humanMovesCount++;
+
+    	}
+    	else
+      	{
+           this.ai.computerTurn();
+    	}
+    };
+
+
+    //A function to start the game
+    this.start = function()
+    {
+       if(this.status === "beginning")
+       {
+       	this.status = "running";
+       	this.advanceTo(this.currentState);
+       }
+    };
+}
+
+
+</script>
+
+
+</html>
